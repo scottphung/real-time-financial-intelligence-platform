@@ -27,45 +27,50 @@ def build_dataset(df):
         return None, None
 
     # -------------------------
-    # FIX: timestamp normalization
+    # TIMESTAMP NORMALIZATION
     # -------------------------
-    df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s", errors="coerce")
     df = df[df["timestamp"].notna()]
-
-    # sort for time series correctness
-    df = df.sort_values("timestamp")
+    df = df.sort_values("timestamp").reset_index(drop=True)
 
     # -------------------------
-    # BASIC FEATURE ENGINEERING
+    # KEEP ONLY COLUMNS WE NEED
+    # -------------------------
+    df = df[["timestamp", "price", "return", "moving_avg_10", "volatility", "is_anomaly"]].copy()
+
+    # -------------------------
+    # FILL NULLS BEFORE FEATURE ENGINEERING
+    # -------------------------
+    df["return"] = df["return"].fillna(0)
+    df["moving_avg_10"] = df["moving_avg_10"].fillna(df["price"])
+    df["volatility"] = df["volatility"].fillna(0)
+    df["is_anomaly"] = df["is_anomaly"].fillna(0).astype(int)
+
+    # -------------------------
+    # FEATURE ENGINEERING
     # -------------------------
     df["future_price"] = df["price"].shift(-1)
-    df["return"] = df["price"].pct_change()
-
-    df["moving_avg_3"] = df["price"].rolling(window=3, min_periods=1).mean()
-
     df["volatility"] = df["price"].rolling(window=3, min_periods=1).std().fillna(0)
-
-    df["is_anomaly"] = (abs(df["return"]) > 0.002).astype(int)
 
     # -------------------------
     # TARGET LABEL
     # -------------------------
     df["target"] = (df["future_price"] > df["price"]).astype(int)
 
-    # drop last row (no future price)
-    df = df.dropna()
+    # Drop only the last row (no future price) — not all rows
+    df = df.iloc[:-1]
 
     # -------------------------
     # SAFETY CHECK
     # -------------------------
-    if len(df) < 5:
+    if len(df) < 10:
         print(f"⚠️ Not enough data after processing: {len(df)} rows")
         return None, None
 
     features = [
         "price",
         "return",
-        "moving_avg_3",
+        "moving_avg_10",
         "volatility",
         "is_anomaly"
     ]
@@ -73,6 +78,7 @@ def build_dataset(df):
     X = df[features]
     y = df["target"]
 
+    print(f"✅ Dataset built: {len(df)} rows, {len(features)} features")
     return X, y
 
 
@@ -81,7 +87,6 @@ def build_dataset(df):
 # -------------------------
 if __name__ == "__main__":
     df = load_data()
-
     X, y = build_dataset(df)
 
     if X is not None:

@@ -2,3 +2,8 @@ pandas
 requests
 kafka-python
 python-dotenv
+fastapi
+uvicorn
+pydantic
+streamlit
+requests
