@@ -3,4 +3,4 @@ data_lake/
 *.parquet
 *.pkl
 __pycache__/
-.env
+.envgit add .
