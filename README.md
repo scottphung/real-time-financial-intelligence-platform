@@ -23,6 +23,7 @@ A **production-grade real-time financial intelligence platform** that ingests li
 ---
 
 ## 🏗️ Architecture
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                        DATA INGESTION                        │
 │              CoinGecko API → Kafka Producer                  │
@@ -60,6 +61,7 @@ A **production-grade real-time financial intelligence platform** that ingests li
 │   STREAMLIT DASHBOARD        │
 │   Live Price · Signal · Chart│
 └─────────────────────────────┘
+```
 ---
 
 ## ⚙️ Tech Stack
@@ -192,39 +194,43 @@ Returns a BUY/SELL signal with confidence score.
 ---
 
 ## 📁 Project Structure
+```text
 real-time-financial-intelligence-platform/
 │
 ├── ingestion/
 │   └── producers/
-│       └── crypto_producer.py       # Kafka producer (CoinGecko)
+│       └── crypto_producer.py          # Kafka producer (CoinGecko)
 │
 ├── streaming/
 │   └── kafka/
-│       └── docker-compose.yml       # Kafka + Zookeeper
+│       └── docker-compose.yml          # Kafka + Zookeeper
 │
 ├── processing/
 │   ├── spark_jobs/
-│   │   └── stream_processor.py      # Kafka consumer + feature engineering
+│   │   └── stream_processor.py         # Kafka consumer + feature engineering
+│   │
 │   ├── storage/
-│   │   └── parquet_writer.py        # Append-only parquet writer
+│   │   └── parquet_writer.py           # Append-only parquet writer
+│   │
 │   └── ml/
-│       ├── build_dataset.py         # Feature + label builder
-│       ├── train_model.py           # Model training pipeline
-│       ├── signal_generator.py      # Inference logic
-│       └── backtest.py              # Strategy backtesting
+│       ├── build_dataset.py            # Feature + label builder
+│       ├── train_model.py              # Model training pipeline
+│       ├── signal_generator.py         # Inference logic
+│       └── backtest.py                 # Strategy backtesting
 │
 ├── api/
-│   ├── main.py                      # FastAPI app
-│   ├── schemas.py                   # Pydantic models
-│   └── model_loader.py              # Model lifecycle
+│   ├── main.py                         # FastAPI app
+│   ├── schemas.py                      # Pydantic models
+│   └── model_loader.py                 # Model lifecycle
 │
 ├── dashboard/
-│   └── app.py                       # Streamlit live dashboard
+│   └── app.py                          # Streamlit live dashboard
 │
-├── data_lake/                        # Partitioned parquet storage
-├── assets/                           # Screenshots for README
+├── data_lake/                          # Partitioned parquet storage
+├── assets/                             # Screenshots for README
 ├── requirements.txt
 └── README.md
+```
 ---
 
 ## 🔮 Roadmap
