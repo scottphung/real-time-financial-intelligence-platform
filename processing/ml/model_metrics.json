@@ -1,0 +1,26 @@
+{
+  "accuracy": 0.4762,
+  "precision": 0.6667,
+  "recall": 0.087,
+  "f1_score": 0.1538,
+  "confusion_matrix": [
+    [
+      36,
+      2
+    ],
+    [
+      42,
+      4
+    ]
+  ],
+  "feature_importance": {
+    "price": 0.42908355593681335,
+    "return": 0.13522633910179138,
+    "moving_avg_10": 0.30949780344963074,
+    "volatility": 0.12619233131408691,
+    "is_anomaly": 0.0
+  },
+  "train_rows": 333,
+  "test_rows": 84,
+  "model_type": "XGBClassifier"
+}

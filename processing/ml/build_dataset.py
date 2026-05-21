@@ -49,7 +49,7 @@ def build_dataset(df):
     # -------------------------
     # FEATURE ENGINEERING
     # -------------------------
-    df["future_price"] = df["price"].shift(-1)
+    df["future_price"] = df["price"].shift(-5)
     df["volatility"] = df["price"].rolling(window=3, min_periods=1).std().fillna(0)
 
     # -------------------------
@@ -58,7 +58,7 @@ def build_dataset(df):
     df["target"] = (df["future_price"] > df["price"]).astype(int)
 
     # Drop only the last row (no future price) — not all rows
-    df = df.iloc[:-1]
+    df = df.iloc[:-5]
 
     # -------------------------
     # SAFETY CHECK

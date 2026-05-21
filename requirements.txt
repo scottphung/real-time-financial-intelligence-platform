@@ -9,3 +9,5 @@ streamlit
 scikit-learn
 joblib
 pyarrow
+xgboost
+altair
