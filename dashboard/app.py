@@ -103,7 +103,7 @@ def load_metrics():
 # -------------------------
 # TABS
 # -------------------------
-tab1, tab2 = st.tabs(["📡 Live Signals", "🧠 Model Metrics"])
+tab1, tab2, tab3 = st.tabs(["📡 Live Signals", "🧠 Model Metrics", "📊 Strategy Analytics"])
 
 
 # ========================
@@ -214,6 +214,73 @@ with tab2:
             ).properties(height=300)
             st.altair_chart(chart, use_container_width=True)
 
+# ========================
+# TAB 3 — STRATEGY ANALYTICS
+# ========================
+with tab3:
+    import altair as alt
+
+    st.title("📊 Strategy Analytics")
+    st.caption("Backtest results from XGBoost signals on historical data lake")
+    st.divider()
+
+    BACKTEST_PATH = "processing/ml/backtest_results.json"
+
+    try:
+        with open(BACKTEST_PATH, "r") as f:
+            bt = json.load(f)
+
+        # --- metric cards ---
+        b1, b2, b3, b4, b5 = st.columns(5)
+        b1.metric("Start Capital",  f"${bt['start_capital']:,.0f}")
+        b2.metric("Final Value",    f"${bt['final_value']:,.2f}",
+                  f"{bt['total_return']:+.2f}%")
+        b3.metric("Sharpe Ratio",   f"{bt['sharpe_ratio']:.4f}")
+        b4.metric("Max Drawdown",   f"{bt['max_drawdown']:.2f}%")
+        b5.metric("Win Rate",       f"{bt['win_rate']:.1f}%")
+
+        st.divider()
+
+        # --- equity curve ---
+        st.markdown("### 📈 Equity Curve")
+        eq_df = pd.DataFrame(bt["equity_curve"])
+        eq_df["tick"] = range(len(eq_df))
+
+        equity_chart = alt.Chart(eq_df).mark_line(color="#4c9be8").encode(
+            x=alt.X("tick:Q", title="Tick", axis=alt.Axis(labelAngle=0)),
+            y=alt.Y("value:Q", title="Portfolio Value ($)",
+                    scale=alt.Scale(zero=False))
+        ).properties(height=300)
+
+        st.altair_chart(equity_chart, use_container_width=True)
+
+        st.divider()
+
+        # --- stats table ---
+        st.markdown("### 📋 Strategy Summary")
+        summary_df = pd.DataFrame([{
+            "Metric": "Total Return",
+            "Value": f"{bt['total_return']:+.2f}%"
+        }, {
+            "Metric": "Sharpe Ratio",
+            "Value": f"{bt['sharpe_ratio']:.4f}"
+        }, {
+            "Metric": "Max Drawdown",
+            "Value": f"{bt['max_drawdown']:.2f}%"
+        }, {
+            "Metric": "Total Trades",
+            "Value": str(bt['total_trades'])
+        }, {
+            "Metric": "Win Rate",
+            "Value": f"{bt['win_rate']:.1f}%"
+        }, {
+            "Metric": "Final Portfolio Value",
+            "Value": f"${bt['final_value']:,.2f}"
+        }])
+        st.dataframe(summary_df, use_container_width=True, hide_index=True)
+
+    except Exception as e:
+        st.warning("No backtest results found. Run `python -m processing.ml.backtest` first.")
 
 # -------------------------
 # AUTO REFRESH
