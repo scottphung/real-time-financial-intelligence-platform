@@ -6,4 +6,6 @@ fastapi
 uvicorn
 pydantic
 streamlit
-requests
+scikit-learn
+joblib
+pyarrow

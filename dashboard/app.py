@@ -4,11 +4,12 @@ import pandas as pd
 import time
 from datetime import datetime
 import random
+import os
 
 # -------------------------
 # CONFIG
 # -------------------------
-API_URL = "http://localhost:8000/predict"
+API_URL = os.getenv("API_URL", "http://localhost:8000/predict")
 REFRESH_INTERVAL = 10  # seconds
 
 st.set_page_config(

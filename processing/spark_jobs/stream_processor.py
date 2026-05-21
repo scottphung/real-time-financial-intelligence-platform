@@ -1,4 +1,5 @@
 import json
+import os
 from kafka import KafkaConsumer
 from processing.storage.parquet_writer import write_to_parquet
 from processing.ml.signal_generator import generate_signal
@@ -6,10 +7,15 @@ from processing.ml.signal_generator import generate_signal
 from collections import deque
 import numpy as np
 
+# -------------------------
+# CONFIG
+# -------------------------
+bootstrap_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+
 # Kafka consumer
 consumer = KafkaConsumer(
     "financial-stream",
-    bootstrap_servers="localhost:9092",
+    bootstrap_servers=bootstrap_servers,
     auto_offset_reset="latest",
     value_deserializer=lambda x: json.loads(x.decode("utf-8"))
 )
