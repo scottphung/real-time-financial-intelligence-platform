@@ -11,3 +11,5 @@ joblib
 pyarrow
 xgboost
 altair
+pytest
+httpx

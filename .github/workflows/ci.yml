@@ -1,0 +1,82 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate synthetic training data
+        run: |
+          python -c "
+          import pandas as pd
+          import numpy as np
+          import os
+
+          os.makedirs('data_lake/crypto/year=2026/month=1/day=1', exist_ok=True)
+
+          np.random.seed(42)
+          n = 200
+          prices = 45000 + np.cumsum(np.random.randn(n) * 50)
+          returns = np.diff(prices, prepend=prices[0]) / prices
+
+          df = pd.DataFrame({
+              'source': 'synthetic',
+              'symbol': 'BTCUSD',
+              'price': prices,
+              'timestamp': pd.date_range('2026-01-01', periods=n, freq='5s').astype(int) / 1e9,
+              'return': returns,
+              'moving_avg_10': pd.Series(prices).rolling(10, min_periods=1).mean(),
+              'volatility': pd.Series(prices).rolling(10, min_periods=1).std().fillna(0),
+              'is_anomaly': (abs(returns) > 0.002).astype(int),
+          })
+
+          df.to_parquet('data_lake/crypto/year=2026/month=1/day=1/crypto.parquet', index=False)
+          print(f'Generated {len(df)} rows of synthetic data')
+          "
+
+      - name: Train model
+        run: python -m processing.ml.train_model
+
+      - name: Run tests
+        run: pytest tests/ -v --tb=short
+
+      - name: Verify API imports cleanly
+        run: |
+          python -c "from api.main import app; print('✅ API imports OK')"
+
+      - name: Verify feature pipeline imports cleanly
+        run: |
+          python -c "from processing.ml.build_dataset import load_data, build_dataset; print('✅ Feature pipeline imports OK')"
+
+      - name: Verify model loads correctly
+        run: |
+          python -c "
+          import joblib
+          model = joblib.load('processing/ml/model.pkl')
+          print(f'✅ Model loaded: {type(model).__name__}')
+          "
